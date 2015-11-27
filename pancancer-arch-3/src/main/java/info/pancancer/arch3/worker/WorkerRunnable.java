@@ -203,8 +203,7 @@ public class WorkerRunnable implements Runnable {
                         } else {
                             String seqwareEngine = settings.getString(Constants.WORKER_SEQWARE_ENGINE, Constants.SEQWARE_WHITESTAR_ENGINE);
                             String seqwareSettingsFile = settings.getString(Constants.WORKER_SEQWARE_SETTINGS_FILE);
-                            String dockerImage = settings.getString(Constants.WORKER_SEQWARE_DOCKER_IMAGE_NAME);
-                            workflowResult = launchJob(statusJSON, job, seqwareEngine, seqwareSettingsFile, dockerImage);
+                            workflowResult = launchJob(statusJSON, job, seqwareEngine, seqwareSettingsFile);
                         }
 
                         status = new Status(vmUuid, job.getUuid(),
@@ -296,7 +295,7 @@ public class WorkerRunnable implements Runnable {
      *            - The job contains information about what workflow to execute, and how.
      * @return The complete stdout and stderr from the workflow execution will be returned.
      */
-    private WorkflowResult launchJob(String message, Job job, String seqwareEngine, String seqwareSettingsFile, String dockerImage) {
+    private WorkflowResult launchJob(String message, Job job, String seqwareEngine, String seqwareSettingsFile) {
         WorkflowResult workflowResult = null;
         ExecutorService exService = Executors.newFixedThreadPool(2);
         WorkflowRunner workflowRunner = new WorkflowRunner();
@@ -307,19 +306,17 @@ public class WorkerRunnable implements Runnable {
                     message.getBytes(StandardCharsets.UTF_8));
             resultsChannel.waitForConfirms();
 
-            //TODO: Parameterize dockerImage
-            if (dockerImage == null || dockerImage.trim()==null) {
-            	dockerImage = "pancancer/seqware_whitestar_pancancer:latest";
-            }
+            //String dockerImage = "pancancer/seqware_whitestar_pancancer:1.1.1";
+            String dockerImage = "pancancer/broad_wrapper_workflow:1.1.0";
             CommandLine cli = new CommandLine("docker");
             cli.addArgument("run");
             List<String> args = new ArrayList<>(Arrays.asList("--rm", "-h", "master", "-t", "-v",
-                    "/var/run/docker.sock:/var/run/docker.sock", "-v", job.getWorkflowPath() + ":/workflow", "-v", pathToINI + ":/ini",
+                    "/var/run/docker.sock:/var/run/docker.sock", "-v","/workflows:/workflows", /*"-v", job.getWorkflowPath() + ":/workflow",*/ "-v", pathToINI + ":/ini",
                     "-v", "/datastore:/datastore", "-v", "/home/" + this.userName + "/.gnos:/home/ubuntu/.gnos"));
             if (seqwareSettingsFile != null) {
                 args.addAll(Arrays.asList("-v", seqwareSettingsFile + ":/home/seqware/.seqware/settings"));
             }
-            args.addAll(Arrays.asList(dockerImage, "seqware", "bundle", "launch", "--dir", "/workflow", "--ini", "/ini", "--no-metadata",
+            args.addAll(Arrays.asList(dockerImage, "seqware", "bundle", "launch", "--dir", "/home/seqware/gitroot/BroadWrapperWorkflow/target/Workflow_Bundle_BroadWrapper_0.0.1-SNAPSHOT_SeqWare_1.1.1", "--ini", "/ini", "--no-metadata",
                     "--engine", seqwareEngine));
 
             String[] argsArray = new String[args.size()];
