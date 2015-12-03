@@ -316,7 +316,7 @@ public class WorkerRunnable implements Runnable {
             if (seqwareSettingsFile != null) {
                 args.addAll(Arrays.asList("-v", seqwareSettingsFile + ":/home/seqware/.seqware/settings"));
             }
-            args.addAll(Arrays.asList(dockerImage, "seqware", "bundle", "launch", "--dir", "/home/seqware/gitroot/BroadWrapperWorkflow/target/Workflow_Bundle_BroadWrapper_0.0.1-SNAPSHOT_SeqWare_1.1.1", "--ini", "/ini", "--no-metadata",
+            args.addAll(Arrays.asList(dockerImage, "seqware", "bundle", "launch", "--dir", "/home/seqware/gitroot/BroadWrapperWorkflow/target/Workflow_Bundle_BroadWrapper_1.1.0_SeqWare_1.1.1", "--ini", "/ini", "--no-metadata",
                     "--engine", seqwareEngine));
 
             String[] argsArray = new String[args.size()];

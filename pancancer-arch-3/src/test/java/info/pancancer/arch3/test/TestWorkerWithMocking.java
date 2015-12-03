@@ -163,7 +163,7 @@ public class TestWorkerWithMocking {
         testResults = cleanResults(testResults);
         // System.out.println("\n===============================\nTest Results: " + testResults);
         System.out.println(testResults);
-        String expectedDockerCommand = "docker run --rm -h master -t -v /var/run/docker.sock:/var/run/docker.sock -v /workflows:/workflows -v /tmp/seqware_tmpfile.ini:/ini -v /datastore:/datastore -v /home/$USER/.gnos:/home/$USER/.gnos -v /home/$USER/custom-seqware-settings:/home/seqware/.seqware/settings pancancer/broad_wrapper_workflow:0.0.1 seqware bundle launch --dir /home/seqware/gitroot/BroadWrapperWorkflow/target/Workflow_Bundle_BroadWrapper_0.0.1-SNAPSHOT_SeqWare_1.1.1 --ini /ini --no-metadata --engine whitestar";
+        String expectedDockerCommand = "docker run --rm -h master -t -v /var/run/docker.sock:/var/run/docker.sock -v /workflows:/workflows -v /tmp/seqware_tmpfile.ini:/ini -v /datastore:/datastore -v /home/$USER/.gnos:/home/$USER/.gnos -v /home/$USER/custom-seqware-settings:/home/seqware/.seqware/settings pancancer/broad_wrapper_workflow:1.1.0 seqware bundle launch --dir /home/seqware/gitroot/BroadWrapperWorkflow/target/Workflow_Bundle_BroadWrapper_1.1.0_SeqWare_1.1.1 --ini /ini --no-metadata --engine whitestar";
         // System.out.println(expectedDockerCommand);
         assertTrue("Check for docker command, got " + testResults, testResults.contains(expectedDockerCommand));
         assertTrue("Check for sleep message in the following:" + testResults,
