@@ -1,0 +1,11 @@
+{
+  "workflow_type_versions": {
+      "CWL": ["v1.0"]
+  },
+  "supported_wes_versions": "0.1.0",
+  "supported_filesystem_protocols": ["file"],
+  "engine_versions": "cwl-runner",
+  "system_state_counts": {},
+  "key_values": {}
+}
+

@@ -35,7 +35,7 @@ public class ConfigurationApi {
     this.apiClient = apiClient;
   }
 
-  
+
   /**
    * List configuration
    * List configuration for debugging
@@ -43,7 +43,7 @@ public class ConfigurationApi {
    */
   public String listConfiguration () throws ApiException {
     Object postBody = null;
-    
+
     // create path and map variables
     String path = "/configuration".replaceAll("\\{format\\}","json");
 
@@ -52,11 +52,11 @@ public class ConfigurationApi {
     Map<String, String> headerParams = new HashMap<String, String>();
     Map<String, Object> formParams = new HashMap<String, Object>();
 
-    
 
-    
 
-    
+
+
+
 
     final String[] accepts = {
       "application/json"
@@ -64,16 +64,16 @@ public class ConfigurationApi {
     final String accept = apiClient.selectHeaderAccept(accepts);
 
     final String[] contentTypes = {
-      
+
     };
     final String contentType = apiClient.selectHeaderContentType(contentTypes);
 
     String[] authNames = new String[] {  };
 
-    
+
     TypeRef returnType = new TypeRef<String>() {};
     return apiClient.invokeAPI(path, "GET", queryParams, postBody, headerParams, formParams, accept, contentType, authNames, returnType);
-    
+
   }
-  
+
 }
