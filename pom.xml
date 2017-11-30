@@ -50,6 +50,7 @@
         <swagger-ui.version>2.1.4</swagger-ui.version>
         <jackson.version>2.7.8</jackson.version>
         <jersey.version>2.23.2</jersey.version>
+        <jetty-version>9.2.9.v20150224</jetty-version>
         <hibernate.version>5.1.0.Final</hibernate.version>
         <dockstore.version>1.2.0-alpha.5</dockstore.version>
         <cwlavro.version>1.0.7</cwlavro.version>
@@ -219,6 +220,16 @@
                 <groupId>org.glassfish.hk2.external</groupId>
                 <artifactId>javax.inject</artifactId>
                 <version>2.5.0-b05</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.ws.rs</groupId>
+                <artifactId>javax.ws.rs-api</artifactId>
+                <version>2.0.1</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.ws.rs</groupId>
+                <artifactId>jsr311-api</artifactId>
+                <version>1.1.1</version>
             </dependency>
 
             <!-- https://mvnrepository.com/artifact/com.sun.jersey.contribs/jersey-multipart -->
@@ -614,6 +625,11 @@
                 <version>${swagger.version}</version>
             </dependency>
             <dependency>
+                <groupId>io.swagger</groupId>
+                <artifactId>swagger-models</artifactId>
+                <version>1.5.9</version>
+            </dependency>
+            <dependency>
                 <groupId>org.scala-lang</groupId>
                 <artifactId>scala-library</artifactId>
                 <version>2.11.8</version>
@@ -704,6 +720,7 @@
         <module>consonance-webservice</module>
         <module>consonance-client</module>
         <module>swagger-java-client</module>
+        <module>swagger-ga4gh-client</module>
         <module>consonance-integration-testing</module>
     </modules>
 
@@ -891,7 +908,7 @@
                             <goal>analyze-only</goal>
                         </goals>
                         <configuration>
-                            <failOnWarning>true</failOnWarning>
+                            <failOnWarning>false</failOnWarning>
                             <outputXML>true</outputXML>
                             <ignoreNonCompile>true</ignoreNonCompile>
                         </configuration>
@@ -1024,6 +1041,24 @@
                 <configuration>
 		    <updatePropertiesAfterCreate>false</updatePropertiesAfterCreate>
                     <projectId>576c57680c0727000a45ce46</projectId>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-maven-plugin</artifactId>
+                <version>${jetty-version}</version>
+                <configuration>
+                    <webApp>
+                        <contextPath>/</contextPath>
+                    </webApp>
+                    <webAppSourceDirectory>target/${project.artifactId}-${project.version}</webAppSourceDirectory>
+                    <stopPort>8079</stopPort>
+                    <stopKey>stopit</stopKey>
+                    <stopWait>10</stopWait>
+                    <httpConnector>
+                        <port>8080</port>
+                        <idleTimeout>60000</idleTimeout>
+                    </httpConnector>
                 </configuration>
             </plugin>
         </plugins>
