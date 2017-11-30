@@ -26,6 +26,7 @@ import io.dropwizard.testing.ResourceHelpers;
 import io.dropwizard.testing.junit.DropwizardAppRule;
 import io.swagger.client.api.OrderApi;
 import io.swagger.client.model.Job;
+//import io.swagger.
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
