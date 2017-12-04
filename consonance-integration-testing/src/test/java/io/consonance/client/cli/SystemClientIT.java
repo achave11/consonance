@@ -29,19 +29,31 @@ import io.consonance.webservice.ConsonanceWebserviceApplication;
 import io.consonance.webservice.ConsonanceWebserviceConfiguration;
 import io.dropwizard.testing.ResourceHelpers;
 import io.dropwizard.testing.junit.DropwizardAppRule;
+import io.swagger.api.ApiResponseMessage;
+import io.swagger.api.Ga4ghApi;
+import io.swagger.api.NotFoundException;
+
 import io.swagger.client.ApiException;
+
 import io.swagger.client.api.OrderApi;
 import io.swagger.client.api.UserApi;
 import io.swagger.client.model.ConsonanceUser;
 import io.swagger.client.model.Job;
+
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.apache.commons.io.FileUtils;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletContext;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import java.io.File;
 import java.io.IOException;
+import java.security.Principal;
 import java.sql.Timestamp;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 
@@ -101,10 +113,89 @@ public class SystemClientIT {
         // schedule a job for myself via the api
         final Job clientJob = createClientJob();
         jobApi.addOrder(clientJob);
-        allJobs = jobApi.listWorkflowRuns();
+        allJobs = jobApi.listWorkflowRuns(); // TODO: Bug is here, maybe add order is not going through properly error
+        // io.consonance.arch.utils.CommonServerTestUtilities: Error setting up queue connections to queue:consonance_arch_orders on host: localhost; error is: Connection refused (Connection refused)
+        //! java.net.ConnectException: Connection refused (Connection refused)
         myJobs = jobApi.listOwnedWorkflowRuns();
         assertThat(myJobs.size() == 1 && allJobs.size() == 1);
         assertThat(myJobs.get(0).getEndUser().equals("admin@admin.com"));
+    }
+    private class MyServletConfig implements ServletConfig{
+
+        @Override
+        public String getServletName() {
+            return null;
+        }
+
+        @Override
+        public ServletContext getServletContext() {
+            return null;
+        }
+
+        @Override
+        public String getInitParameter(String s) {
+            System.out.println("getting param! ");
+
+            if ("Ga4ghApi.implementation".equals(s)) {
+                return "io.swagger.api.impl.Ga4ghApiServiceImpl";
+            }
+            return null;
+        }
+        @Override
+        public Enumeration getInitParameterNames() {
+            return null;
+        }
+    }
+    private class MySecurityContext implements SecurityContext {
+
+        boolean secureConnection = false;
+
+        @Override
+        public Principal getUserPrincipal() {
+            return null;
+        }
+
+        @Override
+        public boolean isUserInRole(String s) {
+            if( "admin@admin.com".equals(s)){
+                secureConnection = true;
+                return secureConnection;
+            }
+            return false;
+        }
+
+        @Override
+        public boolean isSecure() {
+            return secureConnection;
+        }
+
+        @Override
+        public String getAuthenticationScheme() {
+            return null;
+        }
+    }
+
+    @Test
+    public void testGA4GHGetServiceInfo() throws ApiException, IOException, TimeoutException, NotFoundException {
+
+        Ga4ghApi ga4ghApi = new Ga4ghApi(new MyServletConfig());
+        MySecurityContext securityContext = new MySecurityContext();
+        securityContext.isUserInRole("admin@admin.com");
+
+        System.out.println("-----------------START-------------");
+        Response serviceInfo;
+        serviceInfo = ga4ghApi.getServiceInfo(securityContext);
+        ApiResponseMessage apiResponse= (ApiResponseMessage) serviceInfo.getEntity();
+        System.out.println(apiResponse.getMessage());
+        System.out.println(serviceInfo.getAllowedMethods());
+        
+        
+        
+//
+//  System.out.println(ga4ghApi.toString());
+//        System.out.println(Constants.WEBSERVICE_BASE_PATH);
+
+        System.out.println("-----------------END-------------");
     }
 
     @Test

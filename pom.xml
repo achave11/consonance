@@ -226,11 +226,11 @@
                 <artifactId>javax.ws.rs-api</artifactId>
                 <version>2.0.1</version>
             </dependency>
-            <dependency>
-                <groupId>javax.ws.rs</groupId>
-                <artifactId>jsr311-api</artifactId>
-                <version>1.1.1</version>
-            </dependency>
+            <!--<dependency>-->
+                <!--<groupId>javax.ws.rs</groupId>-->
+                <!--<artifactId>jsr311-api</artifactId>-->
+                <!--<version>1.1.1</version>-->
+            <!--</dependency>-->
 
             <!-- https://mvnrepository.com/artifact/com.sun.jersey.contribs/jersey-multipart -->
             <dependency>
@@ -908,7 +908,7 @@
                             <goal>analyze-only</goal>
                         </goals>
                         <configuration>
-                            <failOnWarning>false</failOnWarning>
+                            <failOnWarning>true</failOnWarning>
                             <outputXML>true</outputXML>
                             <ignoreNonCompile>true</ignoreNonCompile>
                         </configuration>
