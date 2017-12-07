@@ -29,17 +29,23 @@ import io.consonance.webservice.ConsonanceWebserviceApplication;
 import io.consonance.webservice.ConsonanceWebserviceConfiguration;
 import io.dropwizard.testing.ResourceHelpers;
 import io.dropwizard.testing.junit.DropwizardAppRule;
-import io.swagger.api.ApiResponseMessage;
-import io.swagger.api.Ga4ghApi;
-import io.swagger.api.NotFoundException;
+import io.swagger.wes.api.ApiResponseMessage;
+import io.swagger.wes.api.Ga4ghApi;
 
+import io.swagger.wes.api.NotFoundException;
+import io.swagger.client.ApiClient;
 import io.swagger.client.ApiException;
+
+// GA4GH client
+import io.swagger.client.api.WorkflowExecutionServiceApi;
+
 
 import io.swagger.client.api.OrderApi;
 import io.swagger.client.api.UserApi;
 import io.swagger.client.model.ConsonanceUser;
 import io.swagger.client.model.Job;
 
+import io.swagger.wes.api.NotFoundException;
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.apache.commons.io.FileUtils;
 import org.junit.ClassRule;
@@ -177,23 +183,21 @@ public class SystemClientIT {
 
     @Test
     public void testGA4GHGetServiceInfo() throws ApiException, IOException, TimeoutException, NotFoundException {
+//        ApiClient clientGa4gh = new ApiClient();
 
-        Ga4ghApi ga4ghApi = new Ga4ghApi(new MyServletConfig());
+        WebClient client = getWebClient();
+        WorkflowExecutionServiceApi api = new WorkflowExecutionServiceApi(client);
+
+
+
+
         MySecurityContext securityContext = new MySecurityContext();
         securityContext.isUserInRole("admin@admin.com");
 
         System.out.println("-----------------START-------------");
-        Response serviceInfo;
-        serviceInfo = ga4ghApi.getServiceInfo(securityContext);
-        ApiResponseMessage apiResponse= (ApiResponseMessage) serviceInfo.getEntity();
-        System.out.println(apiResponse.getMessage());
-        System.out.println(serviceInfo.getAllowedMethods());
-        
-        
-        
-//
-//  System.out.println(ga4ghApi.toString());
-//        System.out.println(Constants.WEBSERVICE_BASE_PATH);
+
+        api.
+
 
         System.out.println("-----------------END-------------");
     }

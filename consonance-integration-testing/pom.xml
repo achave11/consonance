@@ -112,8 +112,8 @@
             <version>1.12.1</version>
         </dependency>
         <dependency>
-            <groupId>io.consonance</groupId>
-            <artifactId>swagger-ga4gh-client</artifactId>
+            <groupId>io.swagger</groupId>
+            <artifactId>swagger-client-ga4gh</artifactId>
             <version>1.0.0</version>
         </dependency>
     </dependencies>
@@ -123,6 +123,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <executions>
+                    <execution></execution>
+                </executions>
             </plugin>
             <plugin>
                 <artifactId>maven-dependency-plugin</artifactId>

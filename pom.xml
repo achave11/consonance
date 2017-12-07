@@ -720,7 +720,7 @@
         <module>consonance-webservice</module>
         <module>consonance-client</module>
         <module>swagger-java-client</module>
-        <module>swagger-ga4gh-client</module>
+        <module>swagger-client-ga4gh</module>
         <module>consonance-integration-testing</module>
     </modules>
 
