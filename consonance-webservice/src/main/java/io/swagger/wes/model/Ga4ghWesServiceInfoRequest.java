@@ -16,7 +16,7 @@ package io.swagger.wes.model;
 import java.util.Objects;
 import javax.validation.constraints.*;
 
-/**
+/*
  * Ga4ghWesServiceInfoRequest
  */
 @javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaJerseyServerCodegen", date = "2017-09-15T17:06:31.319-07:00")
