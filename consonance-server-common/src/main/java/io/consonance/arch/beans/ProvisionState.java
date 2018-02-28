@@ -23,5 +23,5 @@ package io.consonance.arch.beans;
  * @author dyuen
  */
 public enum ProvisionState {
-    START, PENDING, RUNNING, SUCCESS, FAILED
+    START, PENDING, RUNNING, SUCCESS, FAILED, CANCELED, KILL
 }

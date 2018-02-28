@@ -23,5 +23,5 @@ package io.consonance.arch.beans;
  * @author dyuen
  */
 public enum JobState {
-    START, PENDING, RUNNING, SUCCESS, FAILED, LOST
+    START, PENDING, RUNNING, SUCCESS, FAILED, LOST, CANCELED
 }

@@ -84,6 +84,12 @@ public class PostgreSQL extends BasicPostgreSQL{
         runUpdateStatement("update job set status = ?, provision_uuid = ?, update_timestamp = NOW() where job_uuid = ?", status.toString(),
                 vmUuid, uuid);
     }
+    public void cancelJob(String uuid){
+        runUpdateStatement("update job set status = ?, update_timestamp = NOW() where job_uuid = ?",
+                JobState.CANCELED.toString(), uuid);
+        runUpdateStatement("update provision set status = ? where job_uuid = ?",
+                ProvisionState.KILL.toString(), uuid);
+    }
 
     public void updateProvisionByProvisionUUID(String provisionUuid, String jobUuid, ProvisionState status, String ipAddress) {
         runUpdateStatement(

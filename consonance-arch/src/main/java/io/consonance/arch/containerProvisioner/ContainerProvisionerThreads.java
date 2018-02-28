@@ -37,7 +37,7 @@ import io.consonance.arch.beans.Status;
 import io.consonance.arch.beans.StatusState;
 import io.consonance.arch.persistence.PostgreSQL;
 import io.consonance.arch.utils.CommonServerTestUtilities;
-import io.consonance.arch.worker.Worker;
+//import io.consonance.arch.worker.Worker;
 import io.consonance.common.CommonTestUtilities;
 import io.consonance.common.Constants;
 import joptsimple.ArgumentAcceptingOptionSpec;
@@ -63,7 +63,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
+//import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -79,7 +79,7 @@ import java.util.concurrent.TimeoutException;
  */
 public class ContainerProvisionerThreads extends Base {
 
-    private static final int DEFAULT_THREADS = 3;
+    private static final int DEFAULT_THREADS = 4; //Adding one more thread 3 + 1 
     private static final int TWO_MINUTE_IN_MILLISECONDS = 2 * 60 * 1000;
 
     private final OptionSpecBuilder testSpec;
@@ -106,11 +106,13 @@ public class ContainerProvisionerThreads extends Base {
         ProcessVMOrders processVMOrders = new ProcessVMOrders(this.configFile, this.options.has(this.endlessSpec));
         String flavour = (null == this.options.valueOf(this.flavourSpec)) ? "" : this.options.valueOf(this.flavourSpec).toString();
         ProvisionVMs provisionVMs = new ProvisionVMs(this.configFile, this.options.has(this.endlessSpec), this.options.has(testSpec), this.options.has(localSpec), flavour);
+//        ProcessCancelOrders processCanceled = new ProcessCancelOrders(this.options.has(this.endlessSpec),this.configFile,  this.options.has(testSpec));
         CleanupVMs cleanupVMs = new CleanupVMs(this.configFile, this.options.has(this.endlessSpec), this.options.has(testSpec));
         List<Future<?>> futures = new ArrayList<>();
         futures.add(pool.submit(processVMOrders));
         futures.add(pool.submit(provisionVMs));
         futures.add(pool.submit(cleanupVMs));
+//        futures.add(pool.submit(processCanceled));
         try {
             for (Future<?> future : futures) {
                 future.get();
@@ -127,6 +129,76 @@ public class ContainerProvisionerThreads extends Base {
      * This de-queues the VM requests from the VM queue and stages them in the DB as pending so I can keep a count of what's
      * running/pending/finished.
      */
+// Ading a thread that processes cancel jobs. And terminates them immediately.
+//    private static class ProcessCancelOrders implements Callable<Void> {
+//
+//        static final Logger LOG = LoggerFactory.getLogger(ProcessVMOrders.class);
+//        private final boolean endless;
+//        private final String config;
+//        private final boolean testMode;
+//
+//        public ProcessCancelOrders(boolean endless, String config,  boolean testMode) {
+//            this.endless = endless;
+//            this.config = config;
+//            this.testMode = testMode;
+//        }
+//
+//        @Override
+//        public Void call() throws Exception {
+//
+//            Channel resultsChannel = null;
+//            Channel jobChannel = null;
+//            try {
+//                HierarchicalINIConfiguration settings = CommonTestUtilities.parseConfig(config);
+//                String queueName = settings.getString(Constants.RABBIT_QUEUE_NAME);
+//                final String exchangeName = queueName + "_results";
+//                // read from
+//                resultsChannel = CommonServerTestUtilities.setupExchange(settings, exchangeName);
+//                // this declares a queue exchange where multiple consumers get the same message:
+//                // https://www.rabbitmq.com/tutorials/tutorial-three-java.html
+//                String resultsQueue = CommonServerTestUtilities.setupQueueOnExchange(resultsChannel, queueName, "CleanupVMs");
+//                resultsChannel.queueBind(resultsQueue, exchangeName, "");
+//                QueueingConsumer resultsConsumer = new QueueingConsumer(resultsChannel);
+//                resultsChannel.basicConsume(resultsQueue, false, resultsConsumer);
+//                // create the job exchange for resubmission of lost jobs
+//                jobChannel = CommonServerTestUtilities.setupExchange(settings, queueName + "_job_exchange", "direct");
+//                // writes to DB as well
+//                PostgreSQL db = new PostgreSQL(settings);
+//
+//                do {
+//                    LOG.info("CHECKING FOR CANCELED VMs TO REAP!");
+//                    final List<Job> canceledJobs = db.getJobs(JobState.CANCELED);
+//                    for (Job c : canceledJobs) {
+//                        List<Provision> provisionCanceled = db.getProvisions(ProvisionState.KILL);
+//                        for (Provision p : provisionCanceled) {
+//                            if (c.getUuid().equals(p.getJobUUID())) {
+//                                synchronized (ContainerProvisionerThreads.class) {
+//                                    runReaper(settings, p.getIpAddress(), c.getVmUuid(), this.testMode);
+//                                }
+//                                db.updateProvisionByJobUUID(c.getUuid(), p.getProvisionUUID(), ProvisionState.CANCELED, p.getIpAddress());
+//                            }
+//                        }
+//                    }
+//                } while (endless);
+//            } catch (IOException | ShutdownSignalException | ConsumerCancelledException ex) {
+//                LOG.error("CleanupVMs threw the following exception", ex);
+//                throw new RuntimeException(ex);
+//            } catch (Exception ex) {
+//                LOG.error("CleanupVMs threw the following exception", ex);
+//                throw new RuntimeException(ex);
+//            } finally {
+//                if (resultsChannel != null) {
+//                    resultsChannel.close();
+//                    resultsChannel.getConnection().close();
+//                }
+//                if (jobChannel != null) {
+//                    jobChannel.getConnection().close();
+//                }
+//            }
+//            return null;
+//        }
+//    } //TODO: Analyze how using synchronize, or not can affect the reaper. Reaper-bug fix?
+
     private static class ProcessVMOrders implements Callable<Void> {
 
         static final Logger LOG = LoggerFactory.getLogger(ProcessVMOrders.class);
@@ -156,7 +228,6 @@ public class ContainerProvisionerThreads extends Base {
                 QueueingConsumer consumer = new QueueingConsumer(vmChannel);
                 vmChannel.basicConsume(queueName + "_vms", false, consumer);
 
-                // TODO: need threads that each read from orders and another that reads results
                 do {
                     LOG.info("CHECKING FOR NEW VM ORDER!");
                     QueueingConsumer.Delivery delivery = consumer.nextDelivery(FIVE_SECOND_IN_MILLISECONDS);
@@ -223,11 +294,8 @@ public class ContainerProvisionerThreads extends Base {
                 // writes to DB as well
                 PostgreSQL db = new PostgreSQL(settings);
 
-                // TODO: need threads that each read from orders and another that reads results
                 do {
-
                     LOG.info("Checking running VMs");
-                    // System.out.println("CHECKING RUNNING VMs");
 
                     // read from DB
                     final List<Job> pendingJobs = db.getJobs(JobState.PENDING);
@@ -244,28 +312,28 @@ public class ContainerProvisionerThreads extends Base {
                         maxWorkers = settings.getLong(Constants.PROVISION_MAX_RUNNING_CONTAINERS);
 
                         // if this is true need to launch another container
-                        if (numberRunningContainers < maxWorkers && numberPendingContainers > 0) {
-
-                            LOG.info("  RUNNING CONTAINERS < " + maxWorkers + " SO WILL LAUNCH VM");
-
-                            // TODO: this will obviously get much more complicated when integrated with Youxia launch VM
-                            // fake a uuid
-                            String uuid = UUID.randomUUID().toString().toLowerCase();
-                            // now launch the VM... doing this after the update above to prevent race condition if the worker signals
-                            // finished
-                            // before it's marked as pending
-                            if (testMode) {
-                                // this won't actually execute anything
-                                LOG.info("\n\n\nI MOCK LAUNCHED A WORKER THREAD FOR VM " + uuid + " AND IT'S RELEASED!!!\n\n");
-                                Worker.main(new String[] { "--config", this.configFile, "--uuid", uuid, "--pidFile",
-                                        "/var/run/arch3_worker"+uuid+".pid", "--flavour", testFlavour, "--test" });
-                            } else if(localMode) {
-                                // this will actually execute locally
-                                LOG.info("\n\n\nLAUNCHED A WORKER THREAD FOR VM " + uuid + " AND IT'S RELEASED!!!\n\n");
-                                Worker.main(new String[] { "--config", this.configFile, "--uuid", uuid, "--pidFile",
-                                        "/var/run/arch3_worker"+uuid+".pid", "--flavour", testFlavour });
-                            }
-                        }
+//                        if (numberRunningContainers < maxWorkers && numberPendingContainers > 0) {
+//
+//                            LOG.info("  RUNNING CONTAINERS < " + maxWorkers + " SO WILL LAUNCH VM");
+//
+//                            // TODO: this will obviously get much more complicated when integrated with Youxia launch VM
+//                            // fake a uuid
+//                            String uuid = UUID.randomUUID().toString().toLowerCase();
+//                            // now launch the VM... doing this after the update above to prevent race condition if the worker signals
+//                            // finished
+//                            // before it's marked as pending
+//                            if (testMode) {
+//                                // this won't actually execute anything
+//                                LOG.info("\n\n\nI MOCK LAUNCHED A WORKER THREAD FOR VM " + uuid + " AND IT'S RELEASED!!!\n\n");
+//                                Worker.main(new String[] { "--config", this.configFile, "--uuid", uuid, "--pidFile",
+//                                        "/var/run/arch3_worker"+uuid+".pid", "--flavour", testFlavour, "--test" });
+//                            } else if(localMode) {
+//                                // this will actually execute locally
+//                                LOG.info("\n\n\nLAUNCHED A WORKER THREAD FOR VM " + uuid + " AND IT'S RELEASED!!!\n\n");
+//                                Worker.main(new String[] { "--config", this.configFile, "--uuid", uuid, "--pidFile",
+//                                        "/var/run/arch3_worker"+uuid+".pid", "--flavour", testFlavour });
+//                            }
+//                        }
                     } else {
                         long requiredVMs = numberRunningContainers + numberPendingContainers + numberLostContainers;
                         // determine mix of VMs required
@@ -354,10 +422,8 @@ public class ContainerProvisionerThreads extends Base {
             try {
 
                 HierarchicalINIConfiguration settings = CommonTestUtilities.parseConfig(configFile);
-
                 String queueName = settings.getString(Constants.RABBIT_QUEUE_NAME);
                 final String exchangeName = queueName + "_results";
-
                 // read from
                 resultsChannel = CommonServerTestUtilities.setupExchange(settings, exchangeName);
                 // this declares a queue exchange where multiple consumers get the same message:
@@ -366,25 +432,16 @@ public class ContainerProvisionerThreads extends Base {
                 resultsChannel.queueBind(resultsQueue, exchangeName, "");
                 QueueingConsumer resultsConsumer = new QueueingConsumer(resultsChannel);
                 resultsChannel.basicConsume(resultsQueue, false, resultsConsumer);
-
                 // create the job exchange for resubmission of lost jobs
                 jobChannel = CommonServerTestUtilities.setupExchange(settings, queueName + "_job_exchange", "direct");
-
                 // writes to DB as well
                 PostgreSQL db = new PostgreSQL(settings);
-
                 boolean reapFailedWorkers = settings.getBoolean(Constants.PROVISION_REAP_FAILED_WORKERS, false);
 
-                // TODO: need threads that each read from orders and another that reads results
                 do {
-
-                    LOG.info("CHECKING FOR VMs TO REAP!");
-
                     LOG.info("CHECKING DB FOR LOST JOB VMS TO REAP");
-
                     // TODO: this could be dangerous if we loose a job but the worker is in endless mode and has picked up another since the machine previously
                     // running the lost job will be reaped
-
                     final List<Job> lostJobs = db.getJobs(JobState.LOST);
                     for(Job j : lostJobs){
                         // if the VM assigned is running, reap it
@@ -409,45 +466,38 @@ public class ContainerProvisionerThreads extends Base {
                         }
                         jobChannel.basicPublish(queueName + "_job_exchange", j.getFlavour() , MessageProperties.PERSISTENT_TEXT_PLAIN,
                                 j.toJSON().getBytes(StandardCharsets.UTF_8));
-
                         LOG.info(" + message re-sent to job queue!\n" + j.toJSON() + "\n");
-
                     }
-
                     // TODO: this logic isnt' quite right to find orphan workers VMs... the DB has none as RUNNING now... so I'm not sure what I will need to do to see if these are actually running
-                    LOG.info("CHECKING DB FOR SUCCESS/FAILED JOB VMS TO REAP");
-                    final List<Job> doneJobs = db.getJobs(JobState.SUCCESS);
-                    final List<Job> failedJobs = db.getJobs(JobState.FAILED);
-                    doneJobs.addAll(failedJobs);
-                    for(Job j : doneJobs) {
-                        // if the VM assigned is running, reap it
-                        List<Provision> provisions = db.getProvisions(ProvisionState.RUNNING);
-                        for (Provision p : provisions) {
-                            if (j.getUuid().equals(p.getJobUUID())) {
-                                synchronized (ContainerProvisionerThreads.class) {
-                                    runReaper(settings, p.getIpAddress(), j.getVmUuid(), this.testMode);
-                                }
-                            }
-                        }
-                    }
-
+                    //TODO: Ask Walt, what is actually the reaper bug. (Machines don't get reaped?)
+                    LOG.info("CHECKING DB FOR SUCCESS/FAILED JOB VMS TO REAP");                         // Reaper-bug
+                    final List<Job> doneJobs = db.getJobs(JobState.SUCCESS);                            // Reaper-bug
+                    final List<Job> failedJobs = db.getJobs(JobState.FAILED);                           // Reaper-bug
+                    doneJobs.addAll(failedJobs);                                                        // Reaper-bug
+                    for(Job j : doneJobs) {                                                             // Reaper-bug
+                        // if the VM assigned is running, reap it                                       // Reaper-bug
+                        List<Provision> provisions = db.getProvisions(ProvisionState.RUNNING);          // Reaper-bug
+                        for (Provision p : provisions) {                                                // Reaper-bug
+                            if (j.getUuid().equals(p.getJobUUID())) {                                   // Reaper-bug
+                                synchronized (ContainerProvisionerThreads.class) {                      // Reaper-bug
+                                    runReaper(settings, p.getIpAddress(), j.getVmUuid(), this.testMode);// Reaper-bug
+                                }                                                                       // Reaper-bug
+                            }                                                                           // Reaper-bug
+                        }                                                                               // Reaper-bug
+                    }                                                                                   // Reaper-bug
                     LOG.info("CHECKING QUEUE FOR VMS TO REAP");
-
                     QueueingConsumer.Delivery delivery = resultsConsumer.nextDelivery(FIVE_SECOND_IN_MILLISECONDS);
                     if (delivery == null) {
                         continue;
                     }
                     String message = new String(delivery.getBody(), StandardCharsets.UTF_8);
                     LOG.debug(" [x] RECEIVED RESULT MESSAGE - ContainerProvisioner: '" + message + "'");
-
                     // now parse it as JSONObj
                     Status status = new Status().fromJSON(message);
-
                     // in end states, keep a copy of the results
                     if (status.getState() == StatusState.SUCCESS || status.getState() == StatusState.FAILED) {
                         db.updateJobMessage(status.getJobUuid(), status.getStdout(), status.getStderr());
                     }
-
                     if (CommonServerTestUtilities.JOB_MESSAGE_TYPE.equals(status.getType())) {
                         // now update that DB record to be exited
                         // this is actually finishing the VM and not the work
@@ -467,10 +517,12 @@ public class ContainerProvisionerThreads extends Base {
                             }
                         } else if (status.getState() == StatusState.RUNNING || status.getState() == StatusState.FAILED
                                 || status.getState() == StatusState.PENDING || status.getState() == StatusState.PROVISIONING) {
+
                             // deal with running, failed, pending, provisioning
                             // convert from provision state to statestate
                             ProvisionState provisionState = ProvisionState.valueOf(status.getState().toString());
                             db.updateProvisionByJobUUID(status.getJobUuid(), status.getVmUuid(), provisionState, status.getIpAddress());
+
                         }
                     }
                     resultsChannel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
@@ -487,7 +539,6 @@ public class ContainerProvisionerThreads extends Base {
                     resultsChannel.close();
                     resultsChannel.getConnection().close();
                 }
-                // jobChannel.close();
                 if (jobChannel != null) {
                     jobChannel.getConnection().close();
                 }
