@@ -66,12 +66,18 @@
       <artifactId>jackson-databind</artifactId>
       <version>${jackson.version}</version>
     </dependency>
-
-    <!-- jackson - datatype-->
+    <!-- Joda time: if you use it -->
     <dependency>
       <groupId>com.fasterxml.jackson.datatype</groupId>
-      <artifactId>jackson-datatype-jsr310</artifactId>
+      <artifactId>jackson-datatype-joda</artifactId>
       <version>2.8.9</version>
+    </dependency>
+
+    <!-- Base64 encoding that works in both JVM and Android -->
+    <dependency>
+      <groupId>com.brsanthu</groupId>
+      <artifactId>migbase64</artifactId>
+      <version>2.2</version>
     </dependency>
   </dependencies>
   <build>
@@ -91,7 +97,7 @@
               <configOptions>
                 <sourceFolder>src/gen/java/main</sourceFolder>
                 <library>jersey2</library>
-                <dateLibrary>java8</dateLibrary>
+                <dateLibrary>joda</dateLibrary>
                 <hideGenerationTimestamp>true</hideGenerationTimestamp>
                 <useRuntimeException>true</useRuntimeException>
                 <invokerPackage>io.swagger.wes.client</invokerPackage>
@@ -104,22 +110,6 @@
               <generateApiDocumentation>false</generateApiDocumentation>
               <withXml>true</withXml>
               <library>jersey2</library>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>analyze</id>
-            <goals>
-              <goal>analyze-only</goal>
-            </goals>
-            <configuration>
-              <failOnWarning>false</failOnWarning>
-              <outputXML>true</outputXML>
-              <ignoreNonCompile>true</ignoreNonCompile>
             </configuration>
           </execution>
         </executions>
