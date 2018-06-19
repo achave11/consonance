@@ -244,6 +244,12 @@
             <groupId>io.dropwizard</groupId>
             <artifactId>dropwizard-jackson</artifactId>
             <version>${dropwizard.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.datatype</groupId>
+                    <artifactId>jackson-datatype-jsr310</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -454,18 +460,11 @@
             <version>${consonance.version}</version>
         </dependency>
         <dependency>
-            <groupId>io.consonance</groupId>
-            <artifactId>consonance-client</artifactId>
-            <version>${consonance.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.consonance</groupId>
-            <artifactId>consonance-client</artifactId>
-            <version>${consonance.version}</version>
+            <groupId>io.swagger</groupId>
+            <artifactId>swagger-ga4gh-client</artifactId>
+            <version>1.0.0</version>
         </dependency>
     </dependencies>
-
-
 
     <build>
         <plugins>
